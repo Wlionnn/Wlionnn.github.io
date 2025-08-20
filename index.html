@@ -1,4 +1,5 @@
-<html lang="zh-CN"><head>
+<html lang="zh-CN">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>订单信息查询系统</title>
@@ -37,6 +38,9 @@
             }
             .progress-animation {
                 transition: width 0.2s ease-in-out;
+            }
+            .modal-backdrop {
+                backdrop-filter: blur(3px);
             }
         }
     </style>
@@ -259,7 +263,7 @@
                             <input type="file" id="file-upload" accept=".xlsx" class="hidden">
                             <i class="fa fa-file-excel-o text-4xl text-green-500 mb-3"></i>
                             <p class="text-gray-500 mb-2">拖放Excel文件到此处，或点击选择文件</p>
-                            <p class="text-xs text-gray-400">支持格式：XLSX（建议文件大小不超过10MB，首行为标题行，包含：下单时间,姓名,商品,数量,网单号,运单号,货主,发货备注,主单号,揽收网点,责任部门）</p>
+                            <p class="text-xs text-gray-400">支持格式：XLSX（首行为标题行，包含：下单时间,姓名,商品,数量,网单号,运单号,货主,发货备注,主单号,揽收网点,责任部门）</p>
                         </div>
                     </div>
 
@@ -275,8 +279,8 @@
     </main>
 
     <!-- 详情模态框 -->
-    <div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-        <div class="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+    <div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto transform transition-all scale-95 opacity-0" id="modal-content">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold">订单详情</h3>
                 <button id="close-detail" class="text-gray-500 hover:text-gray-700">
@@ -290,8 +294,8 @@
     </div>
 
     <!-- 帮助模态框 -->
-    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto transform transition-all scale-95 opacity-0" id="help-modal-content">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold">使用帮助</h3>
                 <button id="close-help" class="text-gray-500 hover:text-gray-700">
@@ -301,7 +305,7 @@
             <div class="space-y-4 text-sm">
                 <div>
                     <h4 class="font-medium mb-1">如何导入数据？</h4>
-                    <p>通过上传Excel文件导入数据，文件需符合指定格式，建议文件大小不超过10MB。</p>
+                    <p>通过上传Excel文件导入数据，文件需符合指定格式。</p>
                 </div>
                 <div>
                     <h4 class="font-medium mb-1">Excel文件格式要求</h4>
@@ -338,8 +342,8 @@
     </div>
 
     <!-- 确认对话框 -->
-    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-        <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4 transform transition-all scale-95 opacity-0" id="confirm-modal-content">
             <h3 class="text-xl font-bold mb-2" id="confirm-title">确认操作</h3>
             <p class="text-gray-600 mb-4" id="confirm-message">您确定要执行此操作吗？</p>
             <div class="flex justify-end space-x-3">
@@ -348,6 +352,27 @@
                 </button>
                 <button id="confirm-action" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-custom">
                     确认
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入成功提示窗口 -->
+    <div id="import-success-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 transform transition-all scale-95 opacity-0" id="import-success-content">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa fa-check text-2xl text-green-500"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">导入成功</h3>
+                <p class="text-gray-600 mb-4" id="import-success-message">数据已成功导入系统</p>
+                <div class="bg-neutral rounded-lg p-4 mb-4 text-left">
+                    <p class="text-sm"><span class="font-medium">新增记录：</span><span id="import-added-count">0</span> 条</p>
+                    <p class="text-sm"><span class="font-medium">更新记录：</span><span id="import-updated-count">0</span> 条</p>
+                    <p class="text-sm"><span class="font-medium">总记录数：</span><span id="import-total-count">0</span> 条</p>
+                </div>
+                <button id="close-import-success" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom w-full">
+                    完成
                 </button>
             </div>
         </div>
@@ -395,6 +420,35 @@
             
             return date1.getFullYear() === date2.getFullYear() &&
                    date1.getMonth() === date2.getMonth();
+        }
+
+        // 显示模态框的动画效果
+        function showModal(modalId, contentId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // 触发重排后添加动画类
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // 隐藏模态框的动画效果
+        function hideModal(modalId, contentId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
         }
 
         // 进度条控制函数
@@ -610,8 +664,12 @@
                 
                 // 绑定详情模态框关闭事件
                 document.getElementById('close-detail').addEventListener('click', () => {
-                    document.getElementById('detail-modal').classList.add('hidden');
-                    document.getElementById('detail-modal').classList.remove('flex');
+                    hideModal('detail-modal', 'modal-content');
+                });
+                
+                // 绑定导入成功模态框关闭事件
+                document.getElementById('close-import-success').addEventListener('click', () => {
+                    hideModal('import-success-modal', 'import-success-content');
                 });
             },
             
@@ -744,14 +802,12 @@
                 
                 // 帮助按钮
                 document.getElementById('help-btn').addEventListener('click', () => {
-                    document.getElementById('help-modal').classList.remove('hidden');
-                    document.getElementById('help-modal').classList.add('flex');
+                    showModal('help-modal', 'help-modal-content');
                 });
                 
                 // 关闭帮助
                 document.getElementById('close-help').addEventListener('click', () => {
-                    document.getElementById('help-modal').classList.add('hidden');
-                    document.getElementById('help-modal').classList.remove('flex');
+                    hideModal('help-modal', 'help-modal-content');
                 });
                 
                 // 表格搜索
@@ -864,14 +920,8 @@
                 }, 50);
             },
             
-            // 处理Excel文件上传（优化上传速度）
+            // 处理Excel文件上传（已移除10MB限制）
             handleFileUpload(file) {
-                // 检查文件大小，超过10MB给出提示
-                if (file.size > 10 * 1024 * 1024) {
-                    this.showStatusMessage('文件过大，请上传10MB以下的Excel文件', 'error');
-                    return;
-                }
-                
                 if (!file.name.endsWith('.xlsx')) {
                     this.showStatusMessage('请上传XLSX格式的Excel文件', 'error');
                     return;
@@ -925,10 +975,19 @@
                         
                         this.renderDataTable();
                         this.updateStatistics();
-                        this.showStatusMessage(`成功导入 ${addedCount} 条新记录，更新 ${updatedCount} 条现有记录`, 'success');
+                        
+                        // 显示导入成功提示窗口
+                        document.getElementById('import-added-count').textContent = addedCount;
+                        document.getElementById('import-updated-count').textContent = updatedCount;
+                        document.getElementById('import-total-count').textContent = DataManager.getAllData().length;
+                        document.getElementById('import-success-message').textContent = `已成功导入 ${records.length} 条记录`;
                         
                         ProgressManager.update(100);
-                        setTimeout(() => ProgressManager.hide(), 500);
+                        setTimeout(() => {
+                            ProgressManager.hide();
+                            showModal('import-success-modal', 'import-success-content');
+                        }, 500);
+                        
                     } catch (error) {
                         console.error('解析Excel文件出错:', error);
                         this.showStatusMessage('解析文件时出错，请检查文件格式', 'error');
@@ -1177,8 +1236,7 @@
                             </div>
                         `;
                         
-                        document.getElementById('detail-modal').classList.remove('hidden');
-                        document.getElementById('detail-modal').classList.add('flex');
+                        showModal('detail-modal', 'modal-content');
                         
                         setTimeout(() => ProgressManager.hide(), 300);
                     }
@@ -1243,7 +1301,7 @@
             
             // 渲染搜索历史
             renderSearchHistory() {
-                // 保持空实现
+                // 保持空实现，可根据需要扩展
             },
             
             // 更新统计信息
@@ -1281,9 +1339,7 @@
                 document.getElementById('confirm-title').textContent = title;
                 document.getElementById('confirm-message').textContent = message;
                 
-                const modal = document.getElementById('confirm-modal');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
+                showModal('confirm-modal', 'confirm-modal-content');
                 
                 // 绑定确认和取消事件
                 const confirmBtn = document.getElementById('confirm-action');
@@ -1298,14 +1354,12 @@
                 
                 // 添加新的事件监听器
                 newConfirmBtn.addEventListener('click', () => {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
+                    hideModal('confirm-modal', 'confirm-modal-content');
                     confirmCallback();
                 });
                 
                 newCancelBtn.addEventListener('click', () => {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
+                    hideModal('confirm-modal', 'confirm-modal-content');
                 });
             }
         };
@@ -1319,6 +1373,6 @@
             UIController.init();
         });
     </script>
-
-
-</body></html>
+</body>
+</html>
+    
