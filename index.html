@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>订单信息查询系统</title>
@@ -74,8 +72,9 @@
         <!-- 状态提示 -->
         <div id="status-message" class="hidden mb-6 p-4 rounded-lg flex items-center space-x-3"></div>
 
-        <!-- 数据统计（单行显示，尺寸缩小） -->
-        <div class="grid grid-cols-1 mb-6">
+        <!-- 数据统计和月份删除功能 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- 总记录数 -->
             <div class="bg-white rounded-xl p-4 card-shadow hover:shadow-lg transition-custom inline-block">
                 <div class="flex items-center space-x-4">
                     <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -87,9 +86,27 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- 按月份删除 -->
+            <div class="bg-white rounded-xl p-4 card-shadow hover:shadow-lg transition-custom md:col-span-2">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center space-x-4 space-y-2 sm:space-y-0">
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <i class="fa fa-calendar-times-o text-red-500 text-lg"></i>
+                    </div>
+                    <div class="flex-grow w-full sm:w-auto">
+                        <p class="text-gray-500 text-sm">按月份删除数据</p>
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 space-x-0 sm:space-x-2 mt-1">
+                            <input type="month" id="delete-month" class="px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500/50 focus:border-red-500 outline-none transition-custom text-sm w-full sm:w-auto">
+                            <button id="delete-by-month" class="text-white bg-red-500 hover:bg-red-600 transition-custom text-sm p-2 rounded-lg whitespace-nowrap w-full sm:w-auto">
+                                <i class="fa fa-trash mr-1"></i> 按所选月份删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- 订单查询区域（上下布局） -->
+        <!-- 订单查询区域 -->
         <div class="bg-white rounded-xl p-6 card-shadow mb-8">
             <h2 class="text-xl font-bold mb-6 flex items-center">
                 <i class="fa fa-search-circle text-primary mr-2"></i>
@@ -103,17 +120,8 @@
                         <div>
                             <label for="tracking-number" class="block text-sm font-medium text-gray-700 mb-1">请输入运单号</label>
                             <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="tracking-number" 
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-custom"
-                                    placeholder="例如：SF1234567890123"
-                                    autocomplete="off"
-                                >
-                                <button 
-                                    type="submit" 
-                                    class="absolute right-1 top-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-custom"
-                                >
+                                <input type="text" id="tracking-number" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-custom" placeholder="例如：SF1234567890123" autocomplete="off">
+                                <button type="submit" class="absolute right-1 top-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-custom">
                                     查询
                                 </button>
                             </div>
@@ -154,8 +162,8 @@
                             <p id="result-quantity" class="font-medium"></p>
                         </div>
                         <div class="p-4 bg-neutral rounded-lg">
-                            <p class="text-sm text-gray-500">下单时间</p>
-                            <p id="result-purchase-time" class="font-medium"></p>
+                            <p class="text-sm text-gray-500">下单月份</p>
+                            <p id="result-purchase-month" class="font-medium"></p>
                         </div>
                         <div class="p-4 bg-neutral rounded-lg">
                             <p class="text-sm text-gray-500">揽收网点</p>
@@ -174,9 +182,9 @@
             </div>
         </div>
 
-        <!-- 数据明细和导入（数据明细在上，数据导入在下） -->
+        <!-- 数据明细和导入 -->
         <div class="space-y-8">
-            <!-- 数据列表（数据明细） -->
+            <!-- 数据列表 -->
             <div class="bg-white rounded-xl p-6 card-shadow">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                     <h2 class="text-xl font-bold flex items-center">
@@ -185,16 +193,11 @@
                     </h2>
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <div class="relative flex-grow sm:flex-grow-0">
-                            <input 
-                                type="text" 
-                                id="table-search" 
-                                class="pl-8 pr-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-custom text-sm w-full sm:w-60"
-                                placeholder="搜索单号或货主..."
-                            >
+                            <input type="text" id="table-search" class="pl-8 pr-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-custom text-sm w-full sm:w-60" placeholder="搜索单号或货主...">
                             <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
                         </div>
                         <button id="clear-all-data" class="text-red-500 hover:text-red-600 transition-custom text-sm p-2 border border-red-200 rounded-lg hover:bg-red-50 whitespace-nowrap">
-                            <i class="fa fa-trash mr-1"></i> 清空数据
+                            <i class="fa fa-trash mr-1"></i> 清空所有数据
                         </button>
                     </div>
                 </div>
@@ -210,12 +213,13 @@
                                 <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">数量</th>
                                 <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">货主</th>
                                 <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">揽收网点</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">下单月份</th>
                                 <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                             </tr>
                         </thead>
                         <tbody id="data-table-body" class="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                                <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                                     <div class="flex flex-col items-center">
                                         <i class="fa fa-file-excel-o text-4xl mb-2 text-gray-300"></i>
                                         <p>暂无数据，请导入Excel文件</p>
@@ -255,7 +259,7 @@
                             <input type="file" id="file-upload" accept=".xlsx" class="hidden">
                             <i class="fa fa-file-excel-o text-4xl text-green-500 mb-3"></i>
                             <p class="text-gray-500 mb-2">拖放Excel文件到此处，或点击选择文件</p>
-                            <p class="text-xs text-gray-400">支持格式：XLSX（首行为标题行，包含：下单时间,姓名,商品,数量,网单号,运单号,货主,发货备注,主单号,揽收网点,责任部门）</p>
+                            <p class="text-xs text-gray-400">支持格式：XLSX（建议文件大小不超过10MB，首行为标题行，包含：下单时间,姓名,商品,数量,网单号,运单号,货主,发货备注,主单号,揽收网点,责任部门）</p>
                         </div>
                     </div>
 
@@ -297,7 +301,7 @@
             <div class="space-y-4 text-sm">
                 <div>
                     <h4 class="font-medium mb-1">如何导入数据？</h4>
-                    <p>通过上传Excel文件导入数据，文件需符合指定格式。</p>
+                    <p>通过上传Excel文件导入数据，文件需符合指定格式，建议文件大小不超过10MB。</p>
                 </div>
                 <div>
                     <h4 class="font-medium mb-1">Excel文件格式要求</h4>
@@ -316,6 +320,10 @@
                         <li>责任部门（可选）</li>
                     </ul>
                     <p class="mt-1">您可以点击"下载Excel模板"获取正确格式的模板文件。</p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-1">如何按月份删除数据？</h4>
+                    <p>在顶部数据统计区域，选择要删除数据的月份，然后点击"按所选月份删除"按钮，确认后即可删除该月份的所有数据。</p>
                 </div>
                 <div>
                     <h4 class="font-medium mb-1">如何查询？</h4>
@@ -347,22 +355,46 @@
 
     <footer class="bg-white mt-12 py-6 border-t">
         <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-            <p>订单信息查询系统 &copy; 2023</p>
+            <p>订单信息查询系统 © 2023</p>
         </div>
     </footer>
 
     <script>
-        // 格式化日期为"几月几日"
-        function formatDateToMonthDay(dateString) {
+        // 格式化日期为"YYYY年MM月"
+        function formatDateToYearMonth(dateString) {
             if (!dateString) return '未提供';
             
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return '无效日期';
             
+            const year = date.getFullYear();
             const month = date.getMonth() + 1; // 月份从0开始，需要+1
-            const day = date.getDate();
             
-            return `${month}月${day}日`;
+            return `${year}年${month}月`;
+        }
+
+        // 格式化日期为"YYYY-MM"
+        function formatDateToYM(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '';
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            
+            return `${year}-${month}`;
+        }
+
+        // 检查两个日期是否是同一个月
+        function isSameMonth(dateString1, dateString2) {
+            if (!dateString1 || !dateString2) return false;
+            
+            const date1 = new Date(dateString1);
+            const date2 = new Date(dateString2);
+            
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth();
         }
 
         // 进度条控制函数
@@ -441,7 +473,7 @@
                 return true;
             },
             
-            // 批量添加记录（带进度更新）
+            // 批量添加记录（优化上传速度）
             async batchAddRecords(records) {
                 return new Promise((resolve) => {
                     const data = this.getAllData();
@@ -449,36 +481,43 @@
                     let updatedCount = 0;
                     const total = records.length;
                     
-                    // 使用setTimeout模拟异步处理，以便更新进度条
-                    function processRecord(index) {
-                        if (index >= records.length) {
+                    // 优化：使用requestAnimationFrame代替setTimeout以提高性能
+                    let index = 0;
+                    
+                    function processRecords() {
+                        // 每次处理一批记录，而不是一条，提高处理速度
+                        const batchSize = Math.max(1, Math.floor(total / 100)); // 至少处理1条，最多处理总数的1%
+                        const end = Math.min(index + batchSize, total);
+                        
+                        for (; index < end; index++) {
+                            const record = records[index];
+                            const existingIndex = data.findIndex(item => item.waybillNumber === record.waybillNumber);
+                            
+                            if (existingIndex >= 0) {
+                                data[existingIndex] = record;
+                                updatedCount++;
+                            } else {
+                                data.push(record);
+                                addedCount++;
+                            }
+                        }
+                        
+                        // 更新进度
+                        const progress = ((index) / total) * 100;
+                        ProgressManager.update(progress);
+                        
+                        if (index < total) {
+                            // 继续处理下一批
+                            requestAnimationFrame(processRecords);
+                        } else {
                             DataManager.saveData(data);
                             // 增加导入计数
                             DataManager.incrementImportCount();
                             resolve({ addedCount, updatedCount });
-                            return;
                         }
-                        
-                        const record = records[index];
-                        const existingIndex = data.findIndex(item => item.waybillNumber === record.waybillNumber);
-                        
-                        if (existingIndex >= 0) {
-                            data[existingIndex] = record;
-                            updatedCount++;
-                        } else {
-                            data.push(record);
-                            addedCount++;
-                        }
-                        
-                        // 更新进度
-                        const progress = ((index + 1) / total) * 100;
-                        ProgressManager.update(progress);
-                        
-                        // 继续处理下一条记录
-                        setTimeout(() => processRecord(index + 1), 10);
                     }
                     
-                    processRecord(0);
+                    processRecords();
                 });
             },
             
@@ -501,6 +540,19 @@
                     return true;
                 }
                 return false;
+            },
+            
+            // 按月份删除记录
+            deleteByMonth(monthString) {
+                let data = this.getAllData();
+                const initialLength = data.length;
+                data = data.filter(item => !isSameMonth(item.purchaseTime, monthString));
+                
+                if (data.length !== initialLength) {
+                    this.saveData(data);
+                    return initialLength - data.length; // 返回删除的记录数
+                }
+                return 0;
             },
             
             // 清空所有数据
@@ -648,6 +700,48 @@
                     );
                 });
                 
+                // 按月份删除
+                document.getElementById('delete-by-month').addEventListener('click', () => {
+                    const month = document.getElementById('delete-month').value;
+                    if (!month) {
+                        this.showStatusMessage('请选择要删除数据的月份', 'error');
+                        return;
+                    }
+                    
+                    // 格式化月份显示
+                    const formattedMonth = month.replace('-', '年') + '月';
+                    
+                    this.showConfirmModal(
+                        '确认按月份删除',
+                        `您确定要删除所有下单月份为 ${formattedMonth} 的数据吗？此操作不可恢复。`,
+                        () => {
+                            ProgressManager.show("正在删除数据...");
+                            
+                            // 模拟处理进度
+                            let progress = 0;
+                            const interval = setInterval(() => {
+                                progress += 20;
+                                ProgressManager.update(progress);
+                                
+                                if (progress >= 100) {
+                                    clearInterval(interval);
+                                    const deletedCount = DataManager.deleteByMonth(month);
+                                    this.renderDataTable();
+                                    this.updateStatistics();
+                                    
+                                    if (deletedCount > 0) {
+                                        this.showStatusMessage(`已成功删除 ${deletedCount} 条数据`, 'success');
+                                    } else {
+                                        this.showStatusMessage(`未找到 ${formattedMonth} 的数据`, 'info');
+                                    }
+                                    
+                                    setTimeout(() => ProgressManager.hide(), 500);
+                                }
+                            }, 100);
+                        }
+                    );
+                });
+                
                 // 帮助按钮
                 document.getElementById('help-btn').addEventListener('click', () => {
                     document.getElementById('help-modal').classList.remove('hidden');
@@ -747,7 +841,7 @@
                             document.getElementById('result-owner').textContent = result.owner || '未提供';
                             document.getElementById('result-product').textContent = result.product || '未提供';
                             document.getElementById('result-quantity').textContent = result.quantity || '未提供';
-                            document.getElementById('result-purchase-time').textContent = formatDateToMonthDay(result.purchaseTime);
+                            document.getElementById('result-purchase-month').textContent = formatDateToYearMonth(result.purchaseTime);
                             document.getElementById('result-collection-point').textContent = result.collectionPoint || '未提供';
                             document.getElementById('result-responsible-dept').textContent = result.responsibleDept || '未提供';
                             document.getElementById('result-shipping-notes').textContent = result.shippingNotes || '未提供';
@@ -770,8 +864,14 @@
                 }, 50);
             },
             
-            // 处理Excel文件上传
+            // 处理Excel文件上传（优化上传速度）
             handleFileUpload(file) {
+                // 检查文件大小，超过10MB给出提示
+                if (file.size > 10 * 1024 * 1024) {
+                    this.showStatusMessage('文件过大，请上传10MB以下的Excel文件', 'error');
+                    return;
+                }
+                
                 if (!file.name.endsWith('.xlsx')) {
                     this.showStatusMessage('请上传XLSX格式的Excel文件', 'error');
                     return;
@@ -818,7 +918,7 @@
                         
                         ProgressManager.update(70);
                         
-                        // 批量添加记录（带进度）
+                        // 批量添加记录（优化版本）
                         const { addedCount, updatedCount } = await DataManager.batchAddRecords(records);
                         
                         ProgressManager.update(90);
@@ -900,7 +1000,7 @@
                 // 创建工作簿和工作表
                 const wb = XLSX.utils.book_new();
                 
-                // 模板数据（已移除订单时间）
+                // 模板数据
                 const templateData = [
                     {
                         '下单时间': today.toISOString().slice(0, 16).replace('T', ' '),
@@ -957,7 +1057,7 @@
                 if (data.length === 0) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                                 <div class="flex flex-col items-center">
                                     <i class="fa fa-file-excel-o text-4xl mb-2 text-gray-300"></i>
                                     <p>暂无数据，请导入Excel文件</p>
@@ -979,7 +1079,7 @@
                 document.getElementById('prev-page').disabled = this.currentPage <= 1;
                 document.getElementById('next-page').disabled = this.currentPage >= totalPages;
                 
-                // 渲染表格内容（已移除订单时间列）
+                // 渲染表格内容（显示下单月份）
                 tableBody.innerHTML = paginatedData.map(item => `
                     <tr class="hover:bg-gray-50 transition-custom">
                         <td class="px-4 py-3 whitespace-nowrap">${item.waybillNumber}</td>
@@ -989,6 +1089,7 @@
                         <td class="px-4 py-3 whitespace-nowrap">${item.quantity || '-'}</td>
                         <td class="px-4 py-3 whitespace-nowrap">${item.owner || '-'}</td>
                         <td class="px-4 py-3 whitespace-nowrap">${item.collectionPoint || '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">${formatDateToYM(item.purchaseTime) || '-'}</td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <button 
                                 class="text-blue-500 hover:text-blue-700 transition-custom mr-3"
@@ -1027,7 +1128,6 @@
                         }
                         
                         const detailContent = document.getElementById('detail-content');
-                        // 详情中已移除订单时间
                         detailContent.innerHTML = `
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="p-3 bg-neutral rounded-lg">
@@ -1059,8 +1159,8 @@
                                     <p class="font-medium">${record.quantity || '未提供'}</p>
                                 </div>
                                 <div class="p-3 bg-neutral rounded-lg">
-                                    <p class="text-xs text-gray-500">下单时间</p>
-                                    <p class="font-medium">${formatDateToMonthDay(record.purchaseTime)}</p>
+                                    <p class="text-xs text-gray-500">下单月份</p>
+                                    <p class="font-medium">${formatDateToYearMonth(record.purchaseTime) || '未提供'}</p>
                                 </div>
                                 <div class="p-3 bg-neutral rounded-lg">
                                     <p class="text-xs text-gray-500">揽收网点</p>
@@ -1103,7 +1203,7 @@
                     );
                 }
                 
-                // 按下单时间降序排序（原按订单时间排序，已调整）
+                // 按下单时间降序排序
                 return data.sort((a, b) => {
                     if (!a.purchaseTime) return 1;
                     if (!b.purchaseTime) return -1;
@@ -1141,9 +1241,9 @@
                 );
             },
             
-            // 渲染搜索历史（当前已隐藏最近查询，但保留方法）
+            // 渲染搜索历史
             renderSearchHistory() {
-                // 由于已隐藏最近查询区域，此方法可以保持空实现
+                // 保持空实现
             },
             
             // 更新统计信息
@@ -1219,5 +1319,6 @@
             UIController.init();
         });
     </script>
-</body>
-</html>
+
+
+</body></html>
