@@ -305,7 +305,7 @@
             <div class="space-y-4 text-sm">
                 <div>
                     <h4 class="font-medium mb-1">如何导入数据？</h4>
-                    <p>通过上传Excel文件导入数据，文件需符合指定格式。系统会自动从下单时间中识别并提取下单月份。</p>
+                    <p>通过上传Excel文件导入数据，文件需符合指定格式。</p>
                 </div>
                 <div>
                     <h4 class="font-medium mb-1">Excel文件格式要求</h4>
@@ -378,6 +378,12 @@
         </div>
     </div>
 
+    <footer class="bg-white mt-12 py-6 border-t">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>订单信息查询系统 © 2023</p>
+        </div>
+    </footer>
+
     <script>
         // 格式化日期为"YYYY年MM月"
         function formatDateToYearMonth(dateString) {
@@ -405,98 +411,35 @@
             return `${year}-${month}`;
         }
 
-        // 从日期字符串中提取月份（自动识别功能）
-        function extractMonthFromDate(dateString) {
-            if (!dateString) return null;
-            
-            // 尝试多种日期格式解析
-            const dateFormats = [
-                // 尝试直接解析
-                new Date(dateString),
-                // 尝试处理"YYYY年MM月DD日"格式
-                new Date(dateString.replace(/年|月/g, '-').replace('日', '')),
-                // 尝试处理"MM/DD/YYYY"格式
-                new Date(dateString.replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')),
-                // 尝试处理时间戳
-                !isNaN(parseInt(dateString)) ? new Date(parseInt(dateString)) : null
-            ];
-            
-            // 寻找有效的日期解析结果
-            for (const date of dateFormats) {
-                if (date && !isNaN(date.getTime())) {
-                    return {
-                        year: date.getFullYear(),
-                        month: date.getMonth() + 1, // 月份从0开始
-                        ymString: formatDateToYM(date.toISOString()),
-                        yearMonthString: formatDateToYearMonth(date.toISOString())
-                    };
-                }
-            }
-            
-            // 如果所有解析都失败，尝试使用正则表达式提取
-            const regexPatterns = [
-                /(\d{4})[年/-](\d{1,2})/, // YYYY年MM, YYYY-MM, YYYY/MM
-                /(\d{2})[年/-](\d{1,2})/, // YY年MM, YY-MM, YY/MM (假设2000年后)
-                /(\d{4})(\d{2})/          // YYYYMM格式
-            ];
-            
-            for (const pattern of regexPatterns) {
-                const match = dateString.match(pattern);
-                if (match) {
-                    let year, month;
-                    
-                    if (match[1].length === 4) {
-                        year = parseInt(match[1]);
-                        month = parseInt(match[2]);
-                    } else if (match[1].length === 2) {
-                        // 处理两位数年份，假设是2000年后
-                        year = 2000 + parseInt(match[1]);
-                        month = parseInt(match[2]);
-                    } else if (pattern.toString() === '/(\\d{4})(\\d{2})/') {
-                        // YYYYMM格式
-                        year = parseInt(match[1]);
-                        month = parseInt(match[2]);
-                    }
-                    
-                    // 验证月份是否有效
-                    if (month >= 1 && month <= 12) {
-                        return {
-                            year,
-                            month,
-                            ymString: `${year}-${String(month).padStart(2, '0')}`,
-                            yearMonthString: `${year}年${month}月`
-                        };
-                    }
-                }
-            }
-            
-            // 如果所有方法都失败，返回null
-            console.warn(`无法解析日期: ${dateString}`);
-            return null;
-        }
-
         // 检查两个日期是否是同一个月
         function isSameMonth(dateString1, dateString2) {
             if (!dateString1 || !dateString2) return false;
             
-            // 从两个日期中提取月份信息
-            const month1 = extractMonthFromDate(dateString1);
-            const month2 = extractMonthFromDate(dateString2);
+            const date1 = new Date(dateString1);
+            const date2 = new Date(dateString2);
             
-            if (!month1 || !month2) return false;
-            
-            return month1.year === month2.year && month1.month === month2.month;
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth();
         }
 
-        // 显示模态框的动画效果
+        // 显示模态框的动画效果 - 修复版
         function showModal(modalId, contentId) {
             const modal = document.getElementById(modalId);
             const content = document.getElementById(contentId);
             
+            // 检查元素是否存在
+            if (!modal || !content) {
+                console.error('模态框元素不存在:', modalId, contentId);
+                return;
+            }
+            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
-            // 触发重排后添加动画类
+            // 强制触发重排，确保动画能正常执行
+            modal.offsetHeight; // 读取offsetHeight触发重排
+            
+            // 延迟添加动画类，确保重排完成
             setTimeout(() => {
                 content.classList.remove('scale-95', 'opacity-0');
                 content.classList.add('scale-100', 'opacity-100');
@@ -833,8 +776,7 @@
                     }
                     
                     // 格式化月份显示
-                    const [year, monthNum] = month.split('-');
-                    const formattedMonth = `${year}年${monthNum}月`;
+                    const formattedMonth = month.replace('-', '年') + '月';
                     
                     this.showConfirmModal(
                         '确认按月份删除',
@@ -956,11 +898,6 @@
                         const result = DataManager.queryByWaybillNumber(waybillNumber);
                         
                         if (result) {
-                            // 从日期中提取月份信息
-                            const monthInfo = extractMonthFromDate(result.purchaseTime) || {
-                                yearMonthString: '未提供'
-                            };
-                            
                             // 显示结果
                             document.getElementById('result-waybill-number').textContent = result.waybillNumber;
                             document.getElementById('result-network-number').textContent = result.networkNumber || '未提供';
@@ -969,7 +906,7 @@
                             document.getElementById('result-owner').textContent = result.owner || '未提供';
                             document.getElementById('result-product').textContent = result.product || '未提供';
                             document.getElementById('result-quantity').textContent = result.quantity || '未提供';
-                            document.getElementById('result-purchase-month').textContent = monthInfo.yearMonthString;
+                            document.getElementById('result-purchase-month').textContent = formatDateToYearMonth(result.purchaseTime);
                             document.getElementById('result-collection-point').textContent = result.collectionPoint || '未提供';
                             document.getElementById('result-responsible-dept').textContent = result.responsibleDept || '未提供';
                             document.getElementById('result-shipping-notes').textContent = result.shippingNotes || '未提供';
@@ -992,7 +929,7 @@
                 }, 50);
             },
             
-            // 处理Excel文件上传
+            // 处理Excel文件上传（已移除10MB限制）
             handleFileUpload(file) {
                 if (!file.name.endsWith('.xlsx')) {
                     this.showStatusMessage('请上传XLSX格式的Excel文件', 'error');
@@ -1029,7 +966,7 @@
                             return;
                         }
                         
-                        // 处理记录，包含月份自动识别
+                        // 处理记录
                         const records = this.processExcelData(jsonData);
                         
                         if (records.length === 0) {
@@ -1048,16 +985,19 @@
                         this.renderDataTable();
                         this.updateStatistics();
                         
-                        // 显示导入成功提示窗口
+                        // 显示导入成功提示窗口 - 修复版
                         document.getElementById('import-added-count').textContent = addedCount;
                         document.getElementById('import-updated-count').textContent = updatedCount;
                         document.getElementById('import-total-count').textContent = DataManager.getAllData().length;
-                        document.getElementById('import-success-message').textContent = `已成功导入 ${records.length} 条记录，自动识别月份完成`;
+                        document.getElementById('import-success-message').textContent = `已成功导入 ${records.length} 条记录`;
                         
                         ProgressManager.update(100);
+                        // 延长延迟确保进度条隐藏后再显示模态框
                         setTimeout(() => {
                             ProgressManager.hide();
-                            showModal('import-success-modal', 'import-success-content');
+                            setTimeout(() => {
+                                showModal('import-success-modal', 'import-success-content');
+                            }, 100); // 增加100ms延迟确保渲染完成
                         }, 500);
                         
                     } catch (error) {
@@ -1075,29 +1015,19 @@
                 reader.readAsArrayBuffer(file);
             },
             
-            // 处理Excel数据，包含月份自动识别
+            // 处理Excel数据
             processExcelData(jsonData) {
                 const records = [];
-                let unrecognizedDates = 0;
                 
-                jsonData.forEach((item, index) => {
+                jsonData.forEach(item => {
                     // 检查是否有运单号
                     if (!item['运单号']) return;
                     
-                    // 处理日期字段，自动识别月份
-                    const purchaseTime = this.processDate(item['下单时间']);
-                    const monthInfo = extractMonthFromDate(purchaseTime);
-                    
-                    // 记录无法识别的日期
-                    if (!monthInfo && purchaseTime) {
-                        unrecognizedDates++;
-                        console.warn(`第${index + 1}行的日期无法识别: ${purchaseTime}`);
-                    }
+                    // 处理日期字段
+                    let purchaseTime = this.processDate(item['下单时间']);
                     
                     records.push({
                         purchaseTime: purchaseTime,
-                        // 存储自动识别的月份信息
-                        purchaseMonth: monthInfo ? monthInfo.ymString : '',
                         name: item['姓名'] || '',
                         product: item['商品'] || '',
                         quantity: item['数量'] ? item['数量'].toString() : '',
@@ -1110,11 +1040,6 @@
                         responsibleDept: item['责任部门'] || ''
                     });
                 });
-                
-                // 如果有无法识别的日期，显示警告
-                if (unrecognizedDates > 0) {
-                    this.showStatusMessage(`注意：有 ${unrecognizedDates} 条记录的日期格式无法识别，可能导致月份信息不准确`, 'info');
-                }
                 
                 return records;
             },
@@ -1131,8 +1056,9 @@
                     const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
                     return date.toISOString();
                 } else if (typeof dateValue === 'string') {
-                    // 直接返回字符串日期，后续由extractMonthFromDate处理
-                    return dateValue.trim();
+                    // 处理字符串日期
+                    const date = new Date(dateValue);
+                    return !isNaN(date.getTime()) ? date.toISOString() : '';
                 }
                 
                 return '';
@@ -1161,7 +1087,7 @@
                         '责任部门': '销售一部'
                     },
                     {
-                        '下单时间': '2023年06月15日', // 测试中文日期格式
+                        '下单时间': today.toISOString().slice(0, 16).replace('T', ' '),
                         '姓名': '李四',
                         '商品': '服装',
                         '数量': 5,
@@ -1172,19 +1098,6 @@
                         '主单号': 'ZD6677889900',
                         '揽收网点': '上海浦东网点',
                         '责任部门': '销售二部'
-                    },
-                    {
-                        '下单时间': '07/20/2023', // 测试MM/DD/YYYY格式
-                        '姓名': '王五',
-                        '商品': '书籍',
-                        '数量': 10,
-                        '网单号': 'W456123789',
-                        '运单号': 'JD4561237890456',
-                        '货主': '王五书店',
-                        '发货备注': '',
-                        '主单号': 'ZD2233445566',
-                        '揽收网点': '广州天河网点',
-                        '责任部门': '销售三部'
                     }
                 ];
                 
@@ -1237,16 +1150,8 @@
                 document.getElementById('prev-page').disabled = this.currentPage <= 1;
                 document.getElementById('next-page').disabled = this.currentPage >= totalPages;
                 
-                // 渲染表格内容（显示自动识别的下单月份）
-                tableBody.innerHTML = paginatedData.map(item => {
-                    // 获取自动识别的月份信息
-                    const monthInfo = item.purchaseMonth 
-                        ? { ymString: item.purchaseMonth }
-                        : extractMonthFromDate(item.purchaseTime);
-                    
-                    const displayMonth = monthInfo ? monthInfo.ymString : '未识别';
-                    
-                    return `
+                // 渲染表格内容（显示下单月份）
+                tableBody.innerHTML = paginatedData.map(item => `
                     <tr class="hover:bg-gray-50 transition-custom">
                         <td class="px-4 py-3 whitespace-nowrap">${item.waybillNumber}</td>
                         <td class="px-4 py-3 whitespace-nowrap">${item.networkNumber || '-'}</td>
@@ -1255,7 +1160,7 @@
                         <td class="px-4 py-3 whitespace-nowrap">${item.quantity || '-'}</td>
                         <td class="px-4 py-3 whitespace-nowrap">${item.owner || '-'}</td>
                         <td class="px-4 py-3 whitespace-nowrap">${item.collectionPoint || '-'}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">${displayMonth}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">${formatDateToYM(item.purchaseTime) || '-'}</td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <button 
                                 class="text-blue-500 hover:text-blue-700 transition-custom mr-3"
@@ -1271,8 +1176,7 @@
                             </button>
                         </td>
                     </tr>
-                `;
-                }).join('');
+                `).join('');
             },
             
             // 显示详情
@@ -1293,11 +1197,6 @@
                             ProgressManager.hide();
                             return;
                         }
-                        
-                        // 提取月份信息
-                        const monthInfo = record.purchaseMonth 
-                            ? { yearMonthString: record.purchaseMonth.replace('-', '年') + '月' }
-                            : extractMonthFromDate(record.purchaseTime) || { yearMonthString: '未识别' };
                         
                         const detailContent = document.getElementById('detail-content');
                         detailContent.innerHTML = `
@@ -1320,6 +1219,7 @@
                                 </div>
                                 <div class="p-3 bg-neutral rounded-lg">
                                     <p class="text-xs text-gray-500">货主</p>
+500">货主</p>
                                     <p class="font-medium">${record.owner || '未提供'}</p>
                                 </div>
                                 <div class="p-3 bg-neutral rounded-lg">
@@ -1332,11 +1232,7 @@
                                 </div>
                                 <div class="p-3 bg-neutral rounded-lg">
                                     <p class="text-xs text-gray-500">下单月份</p>
-                                    <p class="font-medium">${monthInfo.yearMonthString}</p>
-                                </div>
-                                <div class="p-3 bg-neutral rounded-lg">
-                                    <p class="text-xs text-gray-500">下单时间</p>
-                                    <p class="font-medium text-sm">${record.purchaseTime || '未提供'}</p>
+                                    <p class="font-medium">${formatDateToYearMonth(record.purchaseTime) || '未提供'}</p>
                                 </div>
                                 <div class="p-3 bg-neutral rounded-lg">
                                     <p class="text-xs text-gray-500">揽收网点</p>
@@ -1374,20 +1270,12 @@
                         item.owner.toLowerCase().includes(searchTerm) ||
                         item.product.toLowerCase().includes(searchTerm) ||
                         item.collectionPoint.toLowerCase().includes(searchTerm) ||
-                        item.responsibleDept.toLowerCase().includes(searchTerm) ||
-                        // 允许按月份搜索
-                        (item.purchaseMonth && item.purchaseMonth.toLowerCase().includes(searchTerm))
+                        item.responsibleDept.toLowerCase().includes(searchTerm)
                     );
                 }
                 
-                // 按下单月份降序排序
+                // 按下单时间降序排序
                 return data.sort((a, b) => {
-                    // 优先使用已提取的月份信息进行排序
-                    if (a.purchaseMonth && b.purchaseMonth) {
-                        return b.purchaseMonth.localeCompare(a.purchaseMonth);
-                    }
-                    
-                    // 否则使用原始日期进行排序
                     if (!a.purchaseTime) return 1;
                     if (!b.purchaseTime) return -1;
                     return new Date(b.purchaseTime) - new Date(a.purchaseTime);
@@ -1500,4 +1388,3 @@
     </script>
 </body>
 </html>
-    
